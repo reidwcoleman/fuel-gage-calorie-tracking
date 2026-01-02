@@ -2016,10 +2016,10 @@
         <div class="feature-with-screenshot reverse animate-on-scroll">
           <div class="feature-content">
             <h3>Watch your energy naturally decrease</h3>
-            <p>Your fuel gauge isn't static—it simulates how your body actually burns calories throughout the day. This gamified approach keeps you engaged and helps you understand when to refuel.</p>
+            <p>Your fuel gauge isn't static—it simulates how your body uses energy throughout the day. Your logged calories stay constant, but your energy level decreases over time, encouraging you to refuel.</p>
             <ul>
-              <li>Realistic calorie burn simulation</li>
-              <li>Visual feedback encourages better timing</li>
+              <li>Energy decreases over time (calories stay logged)</li>
+              <li>Visual feedback encourages better meal timing</li>
               <li>Understand your body's energy cycles</li>
               <li>Stay motivated with dynamic updates</li>
             </ul>
@@ -2715,9 +2715,9 @@
       await sleep(3500);
       if (!demoState.isRunning) return;
 
-      // Energy decay
+      // Energy decay (only energy decreases, calories stay the same)
       await sleep(1500);
-      animateGaugeTo(58, 1160, 1500);
+      animateGaugeTo(58, 1320, 1500);
 
       await sleep(2500);
       if (!demoState.isRunning) return;
@@ -2731,7 +2731,7 @@
         showResults(() => {
           selectResult(1, () => {
             showFoodEntry(1);
-            animateGaugeTo(80, 1610, 800);
+            animateGaugeTo(80, 1770, 800);
           });
         });
       });
@@ -2739,9 +2739,9 @@
       await sleep(3500);
       if (!demoState.isRunning) return;
 
-      // Energy decay
+      // Energy decay (only energy decreases, calories stay the same)
       await sleep(1500);
-      animateGaugeTo(72, 1440, 1500);
+      animateGaugeTo(72, 1770, 1500);
 
       await sleep(2500);
       if (!demoState.isRunning) return;
@@ -2755,7 +2755,7 @@
         showResults(() => {
           selectResult(2, () => {
             showFoodEntry(2);
-            animateGaugeTo(78, 1545, 800);
+            animateGaugeTo(78, 1875, 800);
           });
         });
       });
