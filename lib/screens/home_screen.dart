@@ -246,8 +246,8 @@ class HomeScreen extends StatelessWidget {
                 color: AppTheme.textMuted.withValues(alpha: 0.2),
               ),
               _buildStatItem(
-                '${provider.decayRatePerHour.toStringAsFixed(1)}%',
-                '/hour',
+                '-${provider.decayRatePerHour.toStringAsFixed(1)}%',
+                'per hour',
                 AppTheme.warningYellow,
               ),
             ],
