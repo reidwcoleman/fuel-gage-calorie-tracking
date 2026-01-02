@@ -30,19 +30,7 @@ class GlassCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: radius,
-        boxShadow: shadows ??
-            [
-              BoxShadow(
-                color: AppTheme.glassShadow,
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-              BoxShadow(
-                color: AppTheme.primaryTeal.withValues(alpha: 0.1),
-                blurRadius: 30,
-                offset: const Offset(0, 12),
-              ),
-            ],
+        boxShadow: shadows ?? AppTheme.cardShadow,
       ),
       child: ClipRRect(
         borderRadius: radius,
@@ -86,24 +74,12 @@ class SimpleGlassCard extends StatelessWidget {
     return Container(
       padding: padding ?? const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground.withValues(alpha: 0.8),
+        color: AppTheme.cardBackground.withValues(alpha: 0.6),
         borderRadius: radius,
         border: Border.all(
           color: AppTheme.glassBorder,
           width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-          BoxShadow(
-            color: AppTheme.primaryTeal.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
       child: child,
     );

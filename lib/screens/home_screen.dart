@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -184,6 +183,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildFuelGauge(CalorieProvider provider) {
     final energyPercent = (provider.currentEnergy / 100).clamp(0.0, 1.0);
+    final caloriePercent = (provider.totalCalories / provider.calorieGoal).clamp(0.0, 1.0);
     final energyColor = AppTheme.getFuelColor(provider.progressPercent);
 
     if (provider.currentEnergy >= 100 && !_hasShownConfetti) {
@@ -192,94 +192,189 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       });
     }
 
-    return Center(
-      child: AnimatedBuilder(
-        animation: _gaugeController,
-        builder: (context, child) {
-          final animatedValue = Curves.easeOutCubic.transform(_gaugeController.value);
-
-          return SizedBox(
-            width: 260,
-            height: 260,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Outer glow
-                Container(
-                  width: 240,
-                  height: 240,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: energyColor.withValues(alpha: 0.2 * animatedValue),
-                        blurRadius: 40,
-                        spreadRadius: 10,
-                      ),
-                    ],
-                  ),
-                ),
-                // Background ring
-                CustomPaint(
-                  size: const Size(220, 220),
-                  painter: _GaugeBackgroundPainter(),
-                ),
-                // Progress ring
-                CustomPaint(
-                  size: const Size(220, 220),
-                  painter: _GaugeProgressPainter(
-                    progress: energyPercent * animatedValue,
-                    color: energyColor,
-                  ),
-                ),
-                // Inner content
-                Container(
-                  width: 170,
-                  height: 170,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppTheme.background,
-                    border: Border.all(
-                      color: energyColor.withValues(alpha: 0.15),
-                      width: 2,
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.bolt_rounded,
-                        color: energyColor,
-                        size: 28,
-                      ),
-                      const SizedBox(height: 4),
-                      AnimatedCounterStateful(
-                        value: provider.currentEnergy.round(),
-                        style: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textPrimary,
-                          letterSpacing: -2,
-                          height: 1.0,
-                        ),
-                      ),
-                      Text(
-                        'ENERGY',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textMuted,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+      decoration: BoxDecoration(
+        color: AppTheme.cardBackground.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppTheme.glassBorder, width: 1),
       ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          // Energy Circle
+          _buildLargeCircle(
+            value: energyPercent,
+            numericValue: provider.currentEnergy.round(),
+            label: 'ENERGY',
+            unit: '%',
+            icon: Icons.bolt_rounded,
+            color: energyColor,
+          ),
+          // Divider
+          Container(
+            height: 120,
+            width: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  AppTheme.glassBorder,
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+          // Calories Circle
+          _buildLargeCircle(
+            value: caloriePercent,
+            numericValue: provider.totalCalories,
+            label: 'CALORIES',
+            unit: '',
+            icon: Icons.local_fire_department_rounded,
+            color: AppTheme.accentOrange,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLargeCircle({
+    required double value,
+    required int numericValue,
+    required String label,
+    required String unit,
+    required IconData icon,
+    required Color color,
+  }) {
+    const double circleSize = 150;
+    const double strokeWidth = 12;
+    const double innerSize = circleSize - (strokeWidth * 2) - 16;
+
+    return AnimatedBuilder(
+      animation: _gaugeController,
+      builder: (context, child) {
+        final animatedValue = Curves.easeOutCubic.transform(_gaugeController.value);
+
+        return SizedBox(
+          width: circleSize + 10,
+          height: circleSize + 40,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: circleSize,
+                height: circleSize,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Outer glow
+                    Container(
+                      width: circleSize,
+                      height: circleSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withValues(alpha: 0.2 * animatedValue),
+                            blurRadius: 24,
+                            spreadRadius: 4,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Background track
+                    SizedBox(
+                      width: circleSize - 4,
+                      height: circleSize - 4,
+                      child: CircularProgressIndicator(
+                        value: 1.0,
+                        strokeWidth: strokeWidth,
+                        backgroundColor: Colors.transparent,
+                        valueColor: AlwaysStoppedAnimation(
+                          AppTheme.surfaceLight.withValues(alpha: 0.25),
+                        ),
+                        strokeCap: StrokeCap.round,
+                      ),
+                    ),
+                    // Animated progress
+                    SizedBox(
+                      width: circleSize - 4,
+                      height: circleSize - 4,
+                      child: CircularProgressIndicator(
+                        value: value * animatedValue,
+                        strokeWidth: strokeWidth,
+                        backgroundColor: Colors.transparent,
+                        valueColor: AlwaysStoppedAnimation(color),
+                        strokeCap: StrokeCap.round,
+                      ),
+                    ),
+                    // Inner circle with content
+                    Container(
+                      width: innerSize,
+                      height: innerSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppTheme.background,
+                        border: Border.all(
+                          color: color.withValues(alpha: 0.2),
+                          width: 2,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(icon, color: color, size: 24),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              AnimatedCounterStateful(
+                                value: numericValue,
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimary,
+                                  height: 1,
+                                ),
+                              ),
+                              if (unit.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 2),
+                                  child: Text(
+                                    unit,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: color,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textMuted,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -677,73 +772,5 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
       ],
     );
-  }
-}
-
-// Custom painter for gauge background
-class _GaugeBackgroundPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
-    final paint = Paint()
-      ..color = AppTheme.surfaceLight.withValues(alpha: 0.3)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 14
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      rect.deflate(7),
-      -math.pi * 0.75,
-      math.pi * 1.5,
-      false,
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// Custom painter for gauge progress
-class _GaugeProgressPainter extends CustomPainter {
-  final double progress;
-  final Color color;
-
-  _GaugeProgressPainter({required this.progress, required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
-
-    // Create gradient
-    final gradient = SweepGradient(
-      startAngle: -math.pi * 0.75,
-      endAngle: math.pi * 0.75,
-      colors: [
-        color.withValues(alpha: 0.6),
-        color,
-        color,
-      ],
-      stops: const [0.0, 0.5, 1.0],
-    );
-
-    final paint = Paint()
-      ..shader = gradient.createShader(rect)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 14
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      rect.deflate(7),
-      -math.pi * 0.75,
-      math.pi * 1.5 * progress,
-      false,
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _GaugeProgressPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.color != color;
   }
 }
