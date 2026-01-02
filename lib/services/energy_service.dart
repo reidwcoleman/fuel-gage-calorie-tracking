@@ -9,8 +9,8 @@ class EnergyService {
   static const String _currentEnergyKey = 'current_energy_percent';
   static const String _dailyEnergyResetKey = 'daily_energy_reset';
 
-  /// Percentage of energy lost per hour (100% / 24 hours ≈ 4.17%)
-  static const double percentPerHour = 4.17;
+  /// Percentage of energy lost per hour (100% / ~16 waking hours ≈ 6.25%)
+  static const double percentPerHour = 6.25;
 
   /// Minimum energy level percentage
   static const double minimumEnergy = -25.0;
