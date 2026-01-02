@@ -20,6 +20,7 @@ dependencies:
   # Utilities
   intl: ^0.20.1
   uuid: ^4.5.1
+  http: ^1.2.0
 
   # UI Components
   percent_indicator: ^4.2.3
