@@ -2,19 +2,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service to manage energy decay over time
 ///
-/// Energy decreases at 75 calories/hour (based on ~1800 cal/day BMR)
-/// This simulates the body burning energy throughout the day
+/// Energy decreases at ~4.17% per hour (100% / 24 hours)
+/// This simulates the body using energy throughout the day
 class EnergyService {
   static const String _lastActiveKey = 'last_active_time';
-  static const String _currentEnergyKey = 'current_energy';
+  static const String _currentEnergyKey = 'current_energy_percent';
   static const String _dailyEnergyResetKey = 'daily_energy_reset';
 
-  /// Calories burned per hour (average BMR / 24)
-  /// Average BMR is ~1800 cal/day = 75 cal/hour
-  static const int caloriesPerHour = 75;
+  /// Percentage of energy lost per hour (100% / 24 hours ≈ 4.17%)
+  static const double percentPerHour = 4.17;
 
-  /// Minimum energy level (prevents going too negative)
-  static const int minimumEnergy = -500;
+  /// Minimum energy level percentage
+  static const double minimumEnergy = -25.0;
+
+  /// Maximum energy level percentage
+  static const double maximumEnergy = 150.0;
 
   late SharedPreferences _prefs;
 
@@ -34,25 +36,33 @@ class EnergyService {
     await _prefs.setInt(_lastActiveKey, DateTime.now().millisecondsSinceEpoch);
   }
 
-  /// Get the current energy level
-  int getCurrentEnergy() {
-    return _prefs.getInt(_currentEnergyKey) ?? 0;
+  /// Get the current energy level as percentage (0-100+)
+  double getCurrentEnergy() {
+    return _prefs.getDouble(_currentEnergyKey) ?? 50.0;
   }
 
-  /// Set the current energy level
-  Future<void> setCurrentEnergy(int energy) async {
-    await _prefs.setInt(_currentEnergyKey, energy.clamp(minimumEnergy, 10000));
+  /// Set the current energy level percentage
+  Future<void> setCurrentEnergy(double percent) async {
+    await _prefs.setDouble(_currentEnergyKey, percent.clamp(minimumEnergy, maximumEnergy));
   }
 
-  /// Add energy (when eating food)
-  Future<void> addEnergy(int calories) async {
+  /// Add energy based on calories eaten and daily goal
+  /// Converts calories to percentage of daily goal
+  Future<void> addEnergy(int calories, int dailyGoal) async {
     final current = getCurrentEnergy();
-    await setCurrentEnergy(current + calories);
+    final percentToAdd = (calories / dailyGoal) * 100;
+    await setCurrentEnergy(current + percentToAdd);
   }
 
-  /// Calculate energy lost since last active time
-  /// Returns the amount of energy lost (positive number)
-  int calculateEnergyLost(DateTime? lastActive) {
+  /// Remove energy based on calories removed and daily goal
+  Future<void> removeEnergy(int calories, int dailyGoal) async {
+    final current = getCurrentEnergy();
+    final percentToRemove = (calories / dailyGoal) * 100;
+    await setCurrentEnergy(current - percentToRemove);
+  }
+
+  /// Calculate energy percentage lost since last active time
+  double calculateEnergyLost(DateTime? lastActive) {
     if (lastActive == null) return 0;
 
     final now = DateTime.now();
@@ -61,19 +71,20 @@ class EnergyService {
     // Calculate hours elapsed (with decimals for partial hours)
     final hoursElapsed = difference.inMinutes / 60.0;
 
-    // Calculate energy lost
-    final energyLost = (hoursElapsed * caloriesPerHour).round();
+    // Calculate percentage lost
+    final percentLost = hoursElapsed * percentPerHour;
 
-    return energyLost;
+    return percentLost;
   }
 
   /// Process energy decay since last session
-  /// Returns the amount of energy lost
-  Future<int> processEnergyDecay() async {
+  /// Returns the percentage of energy lost
+  Future<double> processEnergyDecay() async {
     final lastActive = getLastActiveTime();
 
     if (lastActive == null) {
-      // First time opening app
+      // First time opening app - start at 50%
+      await setCurrentEnergy(50.0);
       await updateLastActiveTime();
       return 0;
     }
@@ -94,18 +105,18 @@ class EnergyService {
     }
 
     // Calculate time since last active
-    final energyLost = calculateEnergyLost(lastActive);
+    final percentLost = calculateEnergyLost(lastActive);
 
-    if (energyLost > 0) {
+    if (percentLost > 0) {
       // Apply energy decay
       final current = getCurrentEnergy();
-      await setCurrentEnergy(current - energyLost);
+      await setCurrentEnergy(current - percentLost);
     }
 
     // Update last active time
     await updateLastActiveTime();
 
-    return energyLost;
+    return percentLost;
   }
 
   /// Get a human-readable description of time elapsed
@@ -120,27 +131,19 @@ class EnergyService {
     } else if (difference.inHours > 0) {
       return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''} ago';
+      return '${difference.inMinutes} min ago';
     }
     return 'just now';
   }
 
-  /// Get motivational message based on energy level
-  String getEnergyMessage(int energy, int goal) {
-    final percent = energy / goal;
-
-    if (energy < 0) {
-      return 'Energy deficit! Time to refuel!';
-    } else if (percent < 0.25) {
-      return 'Running low - grab a snack!';
-    } else if (percent < 0.5) {
-      return 'Could use some fuel soon';
-    } else if (percent < 0.75) {
-      return 'Energy levels looking good!';
-    } else if (percent <= 1.0) {
-      return 'Tank is nearly full!';
-    } else {
-      return 'Fully fueled and ready to go!';
-    }
+  /// Get the fuel status text based on energy percentage
+  String getFuelStatus(double percent) {
+    if (percent < 0) return 'Empty';
+    if (percent < 15) return 'Critical';
+    if (percent < 30) return 'Low';
+    if (percent < 50) return 'Half';
+    if (percent < 75) return 'Good';
+    if (percent <= 100) return 'Full';
+    return 'Overflow';
   }
 }

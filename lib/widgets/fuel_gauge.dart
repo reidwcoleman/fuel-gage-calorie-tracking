@@ -7,6 +7,7 @@ class FuelGauge extends StatelessWidget {
   final int currentCalories;
   final int goalCalories;
   final String statusText;
+  final bool compact;
 
   const FuelGauge({
     super.key,
@@ -14,10 +15,15 @@ class FuelGauge extends StatelessWidget {
     required this.currentCalories,
     required this.goalCalories,
     required this.statusText,
+    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (compact) {
+      return _buildCompact();
+    }
+
     final displayPercent = (percent * 100).round();
 
     return Container(
@@ -140,6 +146,22 @@ class FuelGauge extends StatelessWidget {
           const SizedBox(height: 12),
           _buildRemainingCalories(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCompact() {
+    return CustomPaint(
+      painter: _CompactGaugePainter(
+        percent: percent.clamp(0, 1.25),
+        gaugeColor: AppTheme.getFuelColor(percent),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.local_gas_station,
+          color: AppTheme.getFuelColor(percent),
+          size: 28,
+        ),
       ),
     );
   }
@@ -277,6 +299,61 @@ class _GaugePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GaugePainter oldDelegate) {
+    return oldDelegate.percent != percent || oldDelegate.gaugeColor != gaugeColor;
+  }
+}
+
+class _CompactGaugePainter extends CustomPainter {
+  final double percent;
+  final Color gaugeColor;
+
+  _CompactGaugePainter({
+    required this.percent,
+    required this.gaugeColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = math.min(size.width, size.height) / 2 - 6;
+
+    // Background arc
+    final backgroundPaint = Paint()
+      ..color = AppTheme.surfaceLight
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8
+      ..strokeCap = StrokeCap.round;
+
+    const startAngle = math.pi * 0.75;
+    const sweepAngle = math.pi * 1.5;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweepAngle,
+      false,
+      backgroundPaint,
+    );
+
+    // Progress arc
+    final progressPaint = Paint()
+      ..color = gaugeColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8
+      ..strokeCap = StrokeCap.round;
+
+    final progressSweep = sweepAngle * percent.clamp(0, 1.0);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      progressSweep,
+      false,
+      progressPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_CompactGaugePainter oldDelegate) {
     return oldDelegate.percent != percent || oldDelegate.gaugeColor != gaugeColor;
   }
 }

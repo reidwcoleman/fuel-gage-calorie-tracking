@@ -3,9 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'providers/calorie_provider.dart';
 import 'screens/main_shell.dart';
+import 'screens/onboarding_screen.dart';
 import 'services/energy_service.dart';
 import 'services/groq_food_service.dart';
-import 'services/storage_service.dart';
+import 'services/supabase_service.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -20,36 +21,38 @@ void main() async {
     ),
   );
 
-  // Initialize services
-  final storage = StorageService();
-  await storage.init();
+  // Initialize Supabase
+  await SupabaseService.init();
 
+  // Initialize energy service
   final energyService = EnergyService();
   await energyService.init();
 
-  // Load Groq API key if saved
-  final groqKey = storage.getGroqApiKey();
-  if (groqKey != null) {
+  // Load Groq API key from Supabase
+  final groqKey = await SupabaseService.getGroqApiKey();
+  if (groqKey != null && groqKey.isNotEmpty) {
     GroqFoodService.setApiKey(groqKey);
   }
 
-  runApp(FuelGageApp(storage: storage, energyService: energyService));
+  // Get or create user (using a simple device identifier)
+  final deviceId = 'device_${DateTime.now().millisecondsSinceEpoch}';
+  await SupabaseService.getOrCreateUser(deviceId);
+
+  runApp(FuelGageApp(energyService: energyService));
 }
 
 class FuelGageApp extends StatelessWidget {
-  final StorageService storage;
   final EnergyService energyService;
 
   const FuelGageApp({
     super.key,
-    required this.storage,
     required this.energyService,
   });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => CalorieProvider(storage, energyService)..init(),
+      create: (_) => CalorieProvider(energyService)..init(),
       child: MaterialApp(
         title: 'Fuel Gage',
         debugShowCheckedModeBanner: false,
@@ -99,10 +102,13 @@ class _SplashScreenState extends State<SplashScreen>
 
     Future.delayed(const Duration(milliseconds: 2000), () {
       if (mounted) {
+        final userName = SupabaseService.currentUserName;
+        final needsOnboarding = userName == null || userName.isEmpty;
+
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
-                const MainShell(),
+                needsOnboarding ? const OnboardingScreen() : const MainShell(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
               return FadeTransition(

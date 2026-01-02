@@ -6,8 +6,21 @@ import '../models/daily_log.dart';
 import '../providers/calorie_provider.dart';
 import '../theme/app_theme.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
+
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  late Future<Map<String, DailyLog>> _logsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _logsFuture = context.read<CalorieProvider>().getAllLogs();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,28 +30,38 @@ class HistoryScreen extends StatelessWidget {
       ),
       body: Consumer<CalorieProvider>(
         builder: (context, provider, child) {
-          final logs = provider.getAllLogs();
-          final sortedKeys = logs.keys.toList()
-            ..sort((a, b) => b.compareTo(a));
+          return FutureBuilder<Map<String, DailyLog>>(
+            future: _logsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+                );
+              }
 
-          if (sortedKeys.isEmpty) {
-            return _buildEmptyState();
-          }
+              final logs = snapshot.data ?? {};
+              final sortedKeys = logs.keys.toList()..sort((a, b) => b.compareTo(a));
 
-          // Group logs by week
-          final weeklyGroups = _groupByWeek(logs, sortedKeys);
+              if (sortedKeys.isEmpty) {
+                return _buildEmptyState();
+              }
 
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: weeklyGroups.length,
-            itemBuilder: (context, index) {
-              final weekGroup = weeklyGroups[index];
-              return _buildWeekSection(
-                context,
-                provider,
-                weekGroup['title'] as String,
-                weekGroup['logs'] as List<DailyLog>,
-                provider.calorieGoal,
+              // Group logs by week
+              final weeklyGroups = _groupByWeek(logs, sortedKeys);
+
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: weeklyGroups.length,
+                itemBuilder: (context, index) {
+                  final weekGroup = weeklyGroups[index];
+                  return _buildWeekSection(
+                    context,
+                    provider,
+                    weekGroup['title'] as String,
+                    weekGroup['logs'] as List<DailyLog>,
+                    provider.calorieGoal,
+                  );
+                },
               );
             },
           );
@@ -69,7 +92,7 @@ class HistoryScreen extends StatelessWidget {
           Text(
             'Start logging foods to see your history',
             style: TextStyle(
-              color: AppTheme.textMuted.withOpacity(0.7),
+              color: AppTheme.textMuted.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -216,7 +239,7 @@ class HistoryScreen extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryGreen.withOpacity(0.2),
+                            color: AppTheme.primaryGreen.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: const Text(

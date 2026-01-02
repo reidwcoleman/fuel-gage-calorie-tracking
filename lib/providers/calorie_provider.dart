@@ -2,61 +2,63 @@ import 'package:flutter/foundation.dart';
 import '../models/daily_log.dart';
 import '../models/food_entry.dart';
 import '../services/energy_service.dart';
-import '../services/storage_service.dart';
+import '../services/supabase_service.dart';
 
 class CalorieProvider extends ChangeNotifier {
-  final StorageService _storage;
   final EnergyService _energyService;
 
   DateTime _selectedDate = DateTime.now();
   DailyLog? _currentLog;
   int _calorieGoal = 2000;
   bool _isLoading = true;
+  String _userName = '';
 
-  // Energy tracking
-  int _currentEnergy = 0;
-  int _energyLostSinceLastLogin = 0;
+  // Energy tracking (percentage-based)
+  double _currentEnergy = 50.0;
+  double _energyLostSinceLastLogin = 0.0;
   String _lastActiveDescription = '';
   bool _showEnergyLostBanner = false;
 
-  CalorieProvider(this._storage, this._energyService);
+  CalorieProvider(this._energyService);
 
   DateTime get selectedDate => _selectedDate;
   DailyLog get currentLog => _currentLog ?? DailyLog(date: _selectedDate);
   int get calorieGoal => _calorieGoal;
   bool get isLoading => _isLoading;
+  String get userName => _userName;
 
-  // Energy getters
-  int get currentEnergy => _currentEnergy;
-  int get energyLostSinceLastLogin => _energyLostSinceLastLogin;
+  // Energy getters (percentage-based)
+  double get currentEnergy => _currentEnergy;
+  double get energyLostSinceLastLogin => _energyLostSinceLastLogin;
   String get lastActiveDescription => _lastActiveDescription;
   bool get showEnergyLostBanner => _showEnergyLostBanner;
 
   int get totalCalories => currentLog.totalCalories;
   int get remainingCalories => _calorieGoal - totalCalories;
 
-  /// Progress based on current energy vs goal
-  double get progressPercent => (_currentEnergy / _calorieGoal).clamp(-0.25, 1.5);
+  /// Progress percentage (0.0 to 1.0+)
+  double get progressPercent => (_currentEnergy / 100).clamp(-0.25, 1.5);
 
-  /// Energy-based fuel status
-  String get fuelStatus {
-    if (_currentEnergy < 0) return 'Energy Deficit!';
-    final percent = progressPercent;
-    if (percent < 0.25) return 'Running on Empty';
-    if (percent < 0.5) return 'Low Fuel';
-    if (percent < 0.75) return 'Half Tank';
-    if (percent <= 1.0) return 'Almost Full';
-    return 'Tank Overflowing!';
+  /// Fuel status based on energy percentage
+  String get fuelStatus => _energyService.getFuelStatus(_currentEnergy);
+
+  /// Decay rate per hour
+  double get decayRatePerHour => EnergyService.percentPerHour;
+
+  /// Get greeting based on time of day
+  String get greeting {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
   }
 
-  /// Hourly burn rate (for display)
-  int get hourlyBurnRate => EnergyService.caloriesPerHour;
-
   Future<void> init() async {
-    _calorieGoal = _storage.getCalorieGoal();
-    await _loadLogForDate(_selectedDate);
+    // Load user data from Supabase
+    _userName = SupabaseService.currentUserName ?? '';
+    _calorieGoal = await SupabaseService.getCalorieGoal();
 
-    // Process energy decay since last login
+    await _loadLogForDate(_selectedDate);
     await _processEnergyDecay();
 
     _isLoading = false;
@@ -71,8 +73,8 @@ class CalorieProvider extends ChangeNotifier {
     _energyLostSinceLastLogin = await _energyService.processEnergyDecay();
     _currentEnergy = _energyService.getCurrentEnergy();
 
-    // Show banner if significant energy was lost (more than 15 minutes worth)
-    _showEnergyLostBanner = _energyLostSinceLastLogin > (EnergyService.caloriesPerHour / 4);
+    // Show banner if significant energy was lost (more than 5%)
+    _showEnergyLostBanner = _energyLostSinceLastLogin > 5.0;
   }
 
   void dismissEnergyLostBanner() {
@@ -81,8 +83,11 @@ class CalorieProvider extends ChangeNotifier {
   }
 
   Future<void> _loadLogForDate(DateTime date) async {
-    _currentLog = _storage.getLogForDate(date);
-    _currentLog ??= DailyLog(date: DateTime(date.year, date.month, date.day));
+    final entries = await SupabaseService.getFoodEntries(date);
+    _currentLog = DailyLog(
+      date: DateTime(date.year, date.month, date.day),
+      entries: entries,
+    );
   }
 
   Future<void> selectDate(DateTime date) async {
@@ -92,14 +97,16 @@ class CalorieProvider extends ChangeNotifier {
   }
 
   Future<void> addFoodEntry(FoodEntry entry) async {
-    await _storage.addEntry(_selectedDate, entry);
-    await _loadLogForDate(_selectedDate);
+    final savedEntry = await SupabaseService.addFoodEntry(_selectedDate, entry);
+    if (savedEntry != null) {
+      await _loadLogForDate(_selectedDate);
 
-    // Add energy when food is logged
-    await _energyService.addEnergy(entry.calories);
-    _currentEnergy = _energyService.getCurrentEnergy();
+      // Add energy as percentage of daily goal
+      await _energyService.addEnergy(entry.calories, _calorieGoal);
+      _currentEnergy = _energyService.getCurrentEnergy();
 
-    notifyListeners();
+      notifyListeners();
+    }
   }
 
   Future<void> removeFoodEntry(String entryId) async {
@@ -109,26 +116,34 @@ class CalorieProvider extends ChangeNotifier {
       orElse: () => FoodEntry(foodName: '', calories: 0, mealType: MealType.snack),
     );
 
-    await _storage.removeEntry(_selectedDate, entryId);
-    await _loadLogForDate(_selectedDate);
+    final success = await SupabaseService.removeFoodEntry(entryId);
+    if (success) {
+      await _loadLogForDate(_selectedDate);
 
-    // Remove energy when food is deleted
-    if (entry.calories > 0) {
-      await _energyService.addEnergy(-entry.calories);
-      _currentEnergy = _energyService.getCurrentEnergy();
+      // Remove energy when food is deleted
+      if (entry.calories > 0) {
+        await _energyService.removeEnergy(entry.calories, _calorieGoal);
+        _currentEnergy = _energyService.getCurrentEnergy();
+      }
+
+      notifyListeners();
     }
-
-    notifyListeners();
   }
 
   Future<void> setCalorieGoal(int goal) async {
     _calorieGoal = goal;
-    await _storage.setCalorieGoal(goal);
+    await SupabaseService.setCalorieGoal(goal);
     notifyListeners();
   }
 
-  Map<String, DailyLog> getAllLogs() {
-    return _storage.getAllLogs();
+  Future<void> setUserName(String name) async {
+    _userName = name;
+    await SupabaseService.updateUserName(name);
+    notifyListeners();
+  }
+
+  Future<Map<String, DailyLog>> getAllLogs() async {
+    return await SupabaseService.getAllLogs();
   }
 
   void goToPreviousDay() {
@@ -153,13 +168,10 @@ class CalorieProvider extends ChangeNotifier {
 
   bool get isToday => _isSameDay(_selectedDate, DateTime.now());
 
-  /// Manually refresh energy (call periodically while app is open)
+  /// Manually refresh energy
   Future<void> refreshEnergy() async {
     _currentEnergy = _energyService.getCurrentEnergy();
     await _energyService.updateLastActiveTime();
     notifyListeners();
   }
-
-  /// Get energy message
-  String get energyMessage => _energyService.getEnergyMessage(_currentEnergy, _calorieGoal);
 }
