@@ -2,15 +2,33 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service to manage energy decay over time
 ///
-/// Energy decreases at ~4.17% per hour (100% / 24 hours)
-/// This simulates the body using energy throughout the day
+/// Energy decreases at ~6.25% per hour during the day
+/// and ~3.125% per hour at night (half rate while sleeping)
 class EnergyService {
   static const String _lastActiveKey = 'last_active_time';
   static const String _currentEnergyKey = 'current_energy_percent';
   static const String _dailyEnergyResetKey = 'daily_energy_reset';
 
-  /// Percentage of energy lost per hour (100% / ~16 waking hours ≈ 6.25%)
-  static const double percentPerHour = 6.25;
+  /// Percentage of energy lost per hour during daytime (6am - 10pm)
+  static const double percentPerHourDay = 6.25;
+
+  /// Percentage of energy lost per hour during nighttime (10pm - 6am) - half rate
+  static const double percentPerHourNight = 3.125;
+
+  /// Nighttime hours (10pm = 22, 6am = 6)
+  static const int nightStartHour = 22;
+  static const int nightEndHour = 6;
+
+  /// Get the current decay rate based on time of day
+  static double get percentPerHour {
+    final hour = DateTime.now().hour;
+    return _isNighttime(hour) ? percentPerHourNight : percentPerHourDay;
+  }
+
+  /// Check if a given hour is during nighttime
+  static bool _isNighttime(int hour) {
+    return hour >= nightStartHour || hour < nightEndHour;
+  }
 
   /// Minimum energy level percentage
   static const double minimumEnergy = -25.0;
@@ -62,19 +80,38 @@ class EnergyService {
   }
 
   /// Calculate energy percentage lost since last active time
+  /// Accounts for different decay rates during day vs night
   double calculateEnergyLost(DateTime? lastActive) {
     if (lastActive == null) return 0;
 
     final now = DateTime.now();
-    final difference = now.difference(lastActive);
 
-    // Calculate hours elapsed (with decimals for partial hours)
-    final hoursElapsed = difference.inMinutes / 60.0;
+    // For short periods (< 1 hour), use simple calculation with current rate
+    final totalMinutes = now.difference(lastActive).inMinutes;
+    if (totalMinutes < 60) {
+      final hoursElapsed = totalMinutes / 60.0;
+      return hoursElapsed * percentPerHour;
+    }
 
-    // Calculate percentage lost
-    final percentLost = hoursElapsed * percentPerHour;
+    // For longer periods, calculate hour by hour to account for day/night transitions
+    double totalPercentLost = 0;
+    DateTime current = lastActive;
 
-    return percentLost;
+    while (current.isBefore(now)) {
+      final nextHour = DateTime(current.year, current.month, current.day, current.hour + 1);
+      final endTime = nextHour.isAfter(now) ? now : nextHour;
+
+      final minutesInThisHour = endTime.difference(current).inMinutes;
+      final hoursInThisSegment = minutesInThisHour / 60.0;
+
+      // Use appropriate rate based on the hour
+      final rate = _isNighttime(current.hour) ? percentPerHourNight : percentPerHourDay;
+      totalPercentLost += hoursInThisSegment * rate;
+
+      current = nextHour;
+    }
+
+    return totalPercentLost;
   }
 
   /// Process energy decay since last session
