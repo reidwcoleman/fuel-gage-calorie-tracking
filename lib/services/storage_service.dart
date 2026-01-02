@@ -8,8 +8,18 @@ class StorageService {
   static const String _goalKey = 'calorie_goal';
   static const String _customFoodsKey = 'custom_foods';
   static const String _groqApiKeyKey = 'groq_api_key';
+  static const String _deviceIdKey = 'device_id';
 
   late SharedPreferences _prefs;
+  static StorageService? _instance;
+
+  static Future<StorageService> getInstance() async {
+    if (_instance == null) {
+      _instance = StorageService();
+      await _instance!.init();
+    }
+    return _instance!;
+  }
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -105,5 +115,15 @@ class StorageService {
     } else {
       await _prefs.setString(_groqApiKeyKey, key);
     }
+  }
+
+  // Device ID - persists across app launches
+  String getOrCreateDeviceId() {
+    String? deviceId = _prefs.getString(_deviceIdKey);
+    if (deviceId == null) {
+      deviceId = 'device_${DateTime.now().millisecondsSinceEpoch}';
+      _prefs.setString(_deviceIdKey, deviceId);
+    }
+    return deviceId;
   }
 }

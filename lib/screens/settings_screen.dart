@@ -402,7 +402,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Fuel Gage',
+                      'FuelUp',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

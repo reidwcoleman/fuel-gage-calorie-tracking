@@ -6,6 +6,7 @@ import 'screens/main_shell.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/energy_service.dart';
 import 'services/groq_food_service.dart';
+import 'services/storage_service.dart';
 import 'services/supabase_service.dart';
 import 'theme/app_theme.dart';
 
@@ -34,17 +35,18 @@ void main() async {
     GroqFoodService.setApiKey(groqKey);
   }
 
-  // Get or create user (using a simple device identifier)
-  final deviceId = 'device_${DateTime.now().millisecondsSinceEpoch}';
+  // Get or create user (using a persistent device identifier)
+  final storage = await StorageService.getInstance();
+  final deviceId = storage.getOrCreateDeviceId();
   await SupabaseService.getOrCreateUser(deviceId);
 
-  runApp(FuelGageApp(energyService: energyService));
+  runApp(FuelUpApp(energyService: energyService));
 }
 
-class FuelGageApp extends StatelessWidget {
+class FuelUpApp extends StatelessWidget {
   final EnergyService energyService;
 
-  const FuelGageApp({
+  const FuelUpApp({
     super.key,
     required this.energyService,
   });
@@ -54,7 +56,7 @@ class FuelGageApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => CalorieProvider(energyService)..init(),
       child: MaterialApp(
-        title: 'Fuel Gage',
+        title: 'FuelUp',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,
         home: const SplashScreen(),
@@ -158,7 +160,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     const SizedBox(height: 24),
                     const Text(
-                      'Fuel Gage',
+                      'FuelUp',
                       style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,

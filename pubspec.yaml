@@ -1,5 +1,5 @@
-name: fuel_gage
-description: "Fuel Gage - A simple calorie tracker that treats your body like a fuel tank."
+name: fuelup
+description: "FuelUp - A simple calorie tracker that treats your body like a fuel tank."
 publish_to: 'none'
 version: 1.0.0+1
 

@@ -69,7 +69,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               const SizedBox(height: 32),
               const Text(
-                'Welcome to\nFuel Gage',
+                'Welcome to\nFuelUp',
                 style: TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
