@@ -2333,72 +2333,9 @@
       }
     }
 
-    // Launch Flutter app (or show success message if Flutter isn't built yet)
+    // Launch Flutter app - redirect to app.html
     function launchFlutterApp() {
-      // Check if Flutter build exists
-      fetch('flutter_bootstrap.js', { method: 'HEAD' })
-        .then(response => {
-          if (response.ok) {
-            // Flutter build exists - load it
-            document.getElementById('landing-page').classList.add('hidden');
-            document.getElementById('flutter-app').classList.add('active');
-
-            const script = document.createElement('script');
-            script.src = 'flutter_bootstrap.js';
-            script.async = true;
-            document.body.appendChild(script);
-          } else {
-            // Flutter build not available - show logged in state
-            showLoggedInState();
-          }
-        })
-        .catch(() => {
-          // Network error or file not found - show logged in state
-          showLoggedInState();
-        });
-    }
-
-    // Show logged in state on landing page
-    function showLoggedInState() {
-      const email = localStorage.getItem('fuelup_user_email') || 'User';
-
-      // Update nav buttons to show logged in state
-      const navButtons = document.querySelector('nav .nav-buttons');
-      if (navButtons) {
-        navButtons.innerHTML = `
-          <span style="color: var(--teal); font-size: 0.9rem; margin-right: 1rem;">
-            ✓ Logged in as ${email}
-          </span>
-          <button class="btn btn-secondary" onclick="handleLogout()">Log Out</button>
-        `;
-      }
-
-      // Update hero buttons
-      const heroButtons = document.querySelector('.hero-buttons');
-      if (heroButtons) {
-        heroButtons.innerHTML = `
-          <span style="color: var(--teal); font-size: 1rem; padding: 1rem 0;">
-            ✓ You're logged in! Download the app to start tracking.
-          </span>
-        `;
-      }
-
-      // Update CTA buttons
-      const ctaButtons = document.querySelector('.cta-buttons');
-      if (ctaButtons) {
-        ctaButtons.innerHTML = `
-          <button class="btn btn-secondary" onclick="handleLogout()">Log Out</button>
-        `;
-      }
-    }
-
-    // Handle logout
-    function handleLogout() {
-      supabaseClient.auth.signOut();
-      localStorage.removeItem('fuelup_user_email');
-      localStorage.removeItem('fuelup_user_name');
-      localStorage.removeItem('fuelup_auth_session');
-      window.location.reload();
+      window.location.href = 'app.html';
     }
 
     // Modal functions
