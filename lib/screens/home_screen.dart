@@ -109,74 +109,79 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildHeader(CalorieProvider provider) {
     final name = provider.userName.isNotEmpty ? provider.userName : 'there';
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              provider.greeting,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppTheme.textMuted,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.3,
+        // Centered greeting and name
+        Center(
+          child: Column(
+            children: [
+              Text(
+                provider.greeting,
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: AppTheme.textMuted,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              name,
-              style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
-                letterSpacing: -0.5,
+              const SizedBox(height: 4),
+              Text(
+                name,
+                style: const TextStyle(
+                  fontSize: 42,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                  letterSpacing: -1,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        if (provider.showEnergyLostBanner)
-          GestureDetector(
-            onTap: provider.dismissEnergyLostBanner,
-            child: AnimatedBuilder(
-              animation: _pulseController,
-              builder: (context, child) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.accentOrange.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppTheme.accentOrange.withValues(
-                        alpha: 0.2 + (_pulseController.value * 0.1),
-                      ),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.trending_down_rounded,
-                        color: AppTheme.accentOrange,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '-${provider.energyLostSinceLastLogin.toStringAsFixed(0)}%',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.accentOrange,
-                          fontWeight: FontWeight.w600,
+        // Energy lost banner (if shown)
+        if (provider.showEnergyLostBanner) ...[
+          const SizedBox(height: 16),
+          Center(
+            child: GestureDetector(
+              onTap: provider.dismissEnergyLostBanner,
+              child: AnimatedBuilder(
+                animation: _pulseController,
+                builder: (context, child) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentOrange.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppTheme.accentOrange.withValues(
+                          alpha: 0.2 + (_pulseController.value * 0.1),
                         ),
                       ),
-                    ],
-                  ),
-                );
-              },
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.trending_down_rounded,
+                          color: AppTheme.accentOrange,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '-${provider.energyLostSinceLastLogin.toStringAsFixed(0)}%',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppTheme.accentOrange,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
+        ],
       ],
     );
   }
