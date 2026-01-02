@@ -246,4 +246,15 @@ class SupabaseService {
       return {};
     }
   }
+
+  /// Sign out the current user
+  static Future<void> signOut() async {
+    try {
+      await client.auth.signOut();
+      _currentUserId = null;
+      _currentUserName = null;
+    } catch (e) {
+      print('Error signing out: $e');
+    }
+  }
 }

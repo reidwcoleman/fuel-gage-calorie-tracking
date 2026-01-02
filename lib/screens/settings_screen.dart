@@ -1,10 +1,13 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/calorie_provider.dart';
 import '../services/groq_food_service.dart';
 import '../services/storage_service.dart';
+import '../services/supabase_service.dart';
 import '../theme/app_theme.dart';
+import 'dart:html' as html;
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -79,6 +82,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             null,
             _buildAbout(),
           ),
+          const SizedBox(height: 24),
+          _buildSection(
+            'Account',
+            null,
+            _buildSignOut(),
+          ),
+          const SizedBox(height: 40),
         ],
       ),
     );
@@ -430,6 +440,98 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildSignOut() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.dangerRed.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.logout, color: AppTheme.dangerRed, size: 20),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Sign Out',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        'Sign out and return to landing page',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _handleSignOut,
+                icon: const Icon(Icons.logout, color: Colors.white),
+                label: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.dangerRed,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleSignOut() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardBackground,
+        title: const Text('Sign Out', style: TextStyle(color: AppTheme.textPrimary)),
+        content: const Text(
+          'Are you sure you want to sign out?',
+          style: TextStyle(color: AppTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.dangerRed),
+            child: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await SupabaseService.signOut();
+      if (kIsWeb) {
+        html.window.location.href = 'index.html';
+      }
+    }
   }
 
   void _saveGoal(CalorieProvider provider) {
