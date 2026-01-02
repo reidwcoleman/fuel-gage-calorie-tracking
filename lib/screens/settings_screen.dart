@@ -183,7 +183,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           avatar: Icon(
             icon,
             size: 18,
-            color: isSelected ? AppTheme.primaryGreen : AppTheme.textSecondary,
+            color: isSelected ? AppTheme.primaryTeal : AppTheme.textSecondary,
           ),
           label: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,7 +192,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? AppTheme.primaryGreen : AppTheme.textPrimary,
+                  color: isSelected ? AppTheme.primaryTeal : AppTheme.textPrimary,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
@@ -200,16 +200,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 '$calories cal',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isSelected ? AppTheme.primaryGreen : AppTheme.textMuted,
+                  color: isSelected ? AppTheme.primaryTeal : AppTheme.textMuted,
                 ),
               ),
             ],
           ),
           backgroundColor: isSelected
-              ? AppTheme.primaryGreen.withOpacity(0.2)
+              ? AppTheme.primaryTeal.withValues(alpha: 0.2)
               : AppTheme.cardBackground,
           side: BorderSide(
-            color: isSelected ? AppTheme.primaryGreen : AppTheme.surfaceLight,
+            color: isSelected ? AppTheme.primaryTeal : AppTheme.surfaceLight,
           ),
           onPressed: () {
             _goalController.text = calories.toString();
@@ -254,14 +254,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _apiKeySaved ? 'API key configured' : 'Not configured',
                         style: TextStyle(
                           fontSize: 12,
-                          color: _apiKeySaved ? AppTheme.primaryGreen : AppTheme.textMuted,
+                          color: _apiKeySaved ? AppTheme.primaryTeal : AppTheme.textMuted,
                         ),
                       ),
                     ],
                   ),
                 ),
                 if (_apiKeySaved)
-                  const Icon(Icons.check_circle, color: AppTheme.primaryGreen, size: 20),
+                  const Icon(Icons.check_circle, color: AppTheme.primaryTeal, size: 20),
               ],
             ),
             const SizedBox(height: 16),
@@ -369,7 +369,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('API key saved! AI food scanning is now enabled.'),
-        backgroundColor: AppTheme.primaryGreen,
+        backgroundColor: AppTheme.primaryTeal,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -388,12 +388,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryGreen.withValues(alpha: 0.2),
+                    color: AppTheme.primaryTeal.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
                     Icons.local_gas_station,
-                    color: AppTheme.primaryGreen,
+                    color: AppTheme.primaryTeal,
                     size: 32,
                   ),
                 ),
@@ -451,7 +451,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Calorie goal updated!'),
-        backgroundColor: AppTheme.primaryGreen,
+        backgroundColor: AppTheme.primaryTeal,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

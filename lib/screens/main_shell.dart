@@ -32,7 +32,7 @@ class _MainShellState extends State<MainShell> {
           color: AppTheme.cardBackground,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 8,
               offset: const Offset(0, -2),
             ),
@@ -66,7 +66,7 @@ class _MainShellState extends State<MainShell> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.primaryGreen.withOpacity(0.15)
+              ? AppTheme.primaryTeal.withValues(alpha: 0.15)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
@@ -75,7 +75,7 @@ class _MainShellState extends State<MainShell> {
           children: [
             Icon(
               icon,
-              color: isSelected ? AppTheme.primaryGreen : AppTheme.textMuted,
+              color: isSelected ? AppTheme.primaryTeal : AppTheme.textMuted,
               size: 24,
             ),
             const SizedBox(height: 4),
@@ -84,7 +84,7 @@ class _MainShellState extends State<MainShell> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? AppTheme.primaryGreen : AppTheme.textMuted,
+                color: isSelected ? AppTheme.primaryTeal : AppTheme.textMuted,
               ),
             ),
           ],

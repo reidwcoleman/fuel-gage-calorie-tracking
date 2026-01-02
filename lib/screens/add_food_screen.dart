@@ -83,8 +83,8 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
         title: Text('Add to ${widget.mealType.displayName}'),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppTheme.primaryGreen,
-          labelColor: AppTheme.primaryGreen,
+          indicatorColor: AppTheme.primaryTeal,
+          labelColor: AppTheme.primaryTeal,
           unselectedLabelColor: AppTheme.textSecondary,
           tabs: const [
             Tab(text: 'Common'),
@@ -194,7 +194,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(color: AppTheme.primaryGreen),
+            CircularProgressIndicator(color: AppTheme.primaryTeal),
             SizedBox(height: 16),
             Text('Searching USDA database...', style: TextStyle(color: AppTheme.textSecondary)),
           ],
@@ -223,10 +223,10 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
             _selectedCategory = selected && label != 'All' ? label : null;
           });
         },
-        selectedColor: AppTheme.primaryGreen.withValues(alpha: 0.3),
-        checkmarkColor: AppTheme.primaryGreen,
+        selectedColor: AppTheme.primaryTeal.withValues(alpha: 0.3),
+        checkmarkColor: AppTheme.primaryTeal,
         labelStyle: TextStyle(
-          color: isSelected ? AppTheme.primaryGreen : AppTheme.textSecondary,
+          color: isSelected ? AppTheme.primaryTeal : AppTheme.textSecondary,
         ),
         backgroundColor: AppTheme.surfaceLight,
         side: BorderSide.none,
@@ -248,7 +248,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
         ),
         trailing: Text(
           '${food.caloriesPerServing ?? food.caloriesPer100g} cal',
-          style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 16),
+          style: const TextStyle(color: AppTheme.primaryTeal, fontWeight: FontWeight.bold, fontSize: 16),
         ),
         onTap: () => _showQuantityDialog(food),
       ),
@@ -280,7 +280,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
           children: [
             Text(
               '${food.calories.round()}',
-              style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 18),
+              style: const TextStyle(color: AppTheme.primaryTeal, fontWeight: FontWeight.bold, fontSize: 18),
             ),
             const Text(
               'cal/100g',
@@ -388,7 +388,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
                         onPressed: quantity > 0.5 ? () => setDialogState(() => quantity -= 0.5) : null,
                         icon: const Icon(Icons.remove_circle_outline),
                         iconSize: 32,
-                        color: AppTheme.primaryGreen,
+                        color: AppTheme.primaryTeal,
                       ),
                       const SizedBox(width: 16),
                       Text(
@@ -400,14 +400,14 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
                         onPressed: () => setDialogState(() => quantity += 0.5),
                         icon: const Icon(Icons.add_circle_outline),
                         iconSize: 32,
-                        color: AppTheme.primaryGreen,
+                        color: AppTheme.primaryTeal,
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Text(
                     '$totalCalories calories',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppTheme.primaryGreen),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppTheme.primaryTeal),
                   ),
                 ],
               ),
@@ -461,7 +461,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
                         onPressed: grams > 25 ? () => setDialogState(() => grams -= 25) : null,
                         icon: const Icon(Icons.remove_circle_outline),
                         iconSize: 32,
-                        color: AppTheme.primaryGreen,
+                        color: AppTheme.primaryTeal,
                       ),
                       const SizedBox(width: 8),
                       SizedBox(
@@ -489,14 +489,14 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
                         onPressed: () => setDialogState(() => grams += 25),
                         icon: const Icon(Icons.add_circle_outline),
                         iconSize: 32,
-                        color: AppTheme.primaryGreen,
+                        color: AppTheme.primaryTeal,
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Text(
                     '$totalCalories calories',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primaryTeal),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -526,7 +526,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('${food.description} added'),
-                        backgroundColor: AppTheme.primaryGreen,
+                        backgroundColor: AppTheme.primaryTeal,
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
@@ -571,7 +571,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${food.name} added to ${widget.mealType.displayName}'),
-        backgroundColor: AppTheme.primaryGreen,
+        backgroundColor: AppTheme.primaryTeal,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -618,7 +618,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('$name added to ${widget.mealType.displayName}'),
-        backgroundColor: AppTheme.primaryGreen,
+        backgroundColor: AppTheme.primaryTeal,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

@@ -149,13 +149,13 @@ class _SplashScreenState extends State<SplashScreen>
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryGreen.withValues(alpha: 0.15),
+                        color: AppTheme.primaryTeal.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.local_gas_station,
                         size: 64,
-                        color: AppTheme.primaryGreen,
+                        color: AppTheme.primaryTeal,
                       ),
                     ),
                     const SizedBox(height: 24),

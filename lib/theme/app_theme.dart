@@ -1,21 +1,40 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Fuel gauge colors
-  static const Color primaryGreen = Color(0xFF22C55E);
+  // Primary accent - Vibrant Teal (main action color)
+  static const Color primaryTeal = Color(0xFF14B8A6);
+  static const Color primaryTealLight = Color(0xFF2DD4BF);
+  static const Color primaryTealDark = Color(0xFF0D9488);
+
+  // Secondary accent - Warm Orange
+  static const Color accentOrange = Color(0xFFF97316);
+  static const Color accentOrangeLight = Color(0xFFFB923C);
+
+  // Legacy alias (for backward compatibility)
+  static const Color primaryGreen = primaryTeal;
+
+  // Status colors
+  static const Color success = Color(0xFF22C55E);
   static const Color warningYellow = Color(0xFFFBBF24);
   static const Color dangerRed = Color(0xFFEF4444);
+
+  // Fuel gauge colors - teal to orange gradient
   static const Color fuelEmpty = Color(0xFF374151);
   static const Color fuelLow = Color(0xFFDC2626);
-  static const Color fuelMedium = Color(0xFFF59E0B);
-  static const Color fuelGood = Color(0xFF10B981);
-  static const Color fuelFull = Color(0xFF22C55E);
+  static const Color fuelMedium = Color(0xFFF97316);  // Orange
+  static const Color fuelGood = Color(0xFF14B8A6);    // Teal
+  static const Color fuelFull = Color(0xFF2DD4BF);    // Light teal
   static const Color fuelOverflow = Color(0xFFEF4444);
 
-  // Background colors
+  // Background colors - Dark Navy
   static const Color background = Color(0xFF0F172A);
   static const Color cardBackground = Color(0xFF1E293B);
   static const Color surfaceLight = Color(0xFF334155);
+
+  // Glassmorphism colors
+  static const Color glassBackground = Color(0x1AFFFFFF);  // 10% white
+  static const Color glassBorder = Color(0x33FFFFFF);      // 20% white
+  static const Color glassShadow = Color(0x40000000);      // 25% black
 
   // Text colors
   static const Color textPrimary = Color(0xFFF8FAFC);
@@ -40,8 +59,8 @@ class AppTheme {
       brightness: Brightness.dark,
       scaffoldBackgroundColor: background,
       colorScheme: const ColorScheme.dark(
-        primary: primaryGreen,
-        secondary: accent,
+        primary: primaryTeal,
+        secondary: accentOrange,
         surface: cardBackground,
         error: dangerRed,
       ),
@@ -64,13 +83,13 @@ class AppTheme {
         ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: primaryGreen,
+        backgroundColor: primaryTeal,
         foregroundColor: Colors.white,
         elevation: 4,
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: cardBackground,
-        selectedItemColor: primaryGreen,
+        selectedItemColor: primaryTeal,
         unselectedItemColor: textMuted,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
@@ -125,7 +144,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryGreen,
+          backgroundColor: primaryTeal,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(

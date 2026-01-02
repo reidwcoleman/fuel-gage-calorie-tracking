@@ -62,12 +62,12 @@ class MealSection extends StatelessWidget {
                   icon: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryGreen.withOpacity(0.2),
+                      color: AppTheme.primaryTeal.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
                       Icons.add,
-                      color: AppTheme.primaryGreen,
+                      color: AppTheme.primaryTeal,
                       size: 20,
                     ),
                   ),
@@ -116,7 +116,7 @@ class MealSection extends StatelessWidget {
                     trailing: Text(
                       '${entry.calories} cal',
                       style: const TextStyle(
-                        color: AppTheme.primaryGreen,
+                        color: AppTheme.primaryTeal,
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
                       ),
@@ -132,7 +132,7 @@ class MealSection extends StatelessWidget {
               child: Text(
                 'No foods logged yet',
                 style: TextStyle(
-                  color: AppTheme.textMuted.withOpacity(0.7),
+                  color: AppTheme.textMuted.withValues(alpha: 0.7),
                   fontStyle: FontStyle.italic,
                 ),
               ),

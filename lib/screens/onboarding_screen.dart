@@ -58,13 +58,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryGreen.withValues(alpha: 0.15),
+                  color: AppTheme.primaryTeal.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.local_gas_station,
                   size: 48,
-                  color: AppTheme.primaryGreen,
+                  color: AppTheme.primaryTeal,
                 ),
               ),
               const SizedBox(height: 32),
@@ -122,8 +122,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppTheme.primaryGreen,
-                      AppTheme.primaryGreen.withValues(alpha: 0.3),
+                      AppTheme.primaryTeal,
+                      AppTheme.primaryTeal.withValues(alpha: 0.3),
                     ],
                   ),
                 ),
@@ -135,7 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _continue,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryGreen,
+                    backgroundColor: AppTheme.primaryTeal,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),

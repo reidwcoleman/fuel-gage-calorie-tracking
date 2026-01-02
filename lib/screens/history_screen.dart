@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/daily_log.dart';
 import '../providers/calorie_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/trend_chart.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -34,8 +35,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
             future: _logsFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+                return Center(
+                  child: CircularProgressIndicator(color: AppTheme.primaryTeal),
                 );
               }
 
@@ -48,20 +49,69 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
               // Group logs by week
               final weeklyGroups = _groupByWeek(logs, sortedKeys);
+              final allLogs = logs.values.toList();
 
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: weeklyGroups.length,
-                itemBuilder: (context, index) {
-                  final weekGroup = weeklyGroups[index];
-                  return _buildWeekSection(
-                    context,
-                    provider,
-                    weekGroup['title'] as String,
-                    weekGroup['logs'] as List<DailyLog>,
-                    provider.calorieGoal,
-                  );
-                },
+              return CustomScrollView(
+                slivers: [
+                  // Trend Chart Section
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Calorie Trends',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              TrendIndicator(logs: allLogs, days: 7),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppTheme.cardBackground,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            padding: const EdgeInsets.all(16),
+                            child: TrendChart(
+                              logs: allLogs,
+                              days: 14,
+                              calorieGoal: provider.calorieGoal,
+                              height: 180,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Weekly sections
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final weekGroup = weeklyGroups[index];
+                        return _buildWeekSection(
+                          context,
+                          provider,
+                          weekGroup['title'] as String,
+                          weekGroup['logs'] as List<DailyLog>,
+                          provider.calorieGoal,
+                        );
+                      },
+                      childCount: weeklyGroups.length,
+                    ),
+                  ),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 24),
+                  ),
+                ],
               );
             },
           );
@@ -75,10 +125,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.history,
             size: 64,
-            color: AppTheme.textMuted,
+            color: AppTheme.textMuted.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           const Text(
@@ -172,17 +222,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textSecondary,
+                  color: AppTheme.primaryTeal,
                 ),
               ),
-              Text(
-                'Avg: $avgCalories cal/day',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.textMuted,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryTeal.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Avg: $avgCalories cal/day',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.primaryTeal,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
@@ -203,6 +261,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final dateFormat = DateFormat('EEEE, MMM d');
     final percent = (log.totalCalories / goal).clamp(0.0, 1.0);
     final isToday = _isSameDay(log.date, DateTime.now());
+    final fuelColor = AppTheme.getFuelColor(log.totalCalories / goal);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -227,7 +286,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           color: isToday
-                              ? AppTheme.primaryGreen
+                              ? AppTheme.primaryTeal
                               : AppTheme.textPrimary,
                         ),
                       ),
@@ -239,15 +298,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryGreen.withValues(alpha: 0.2),
+                            color: AppTheme.primaryTeal.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
+                          child: Text(
                             'TODAY',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryGreen,
+                              color: AppTheme.primaryTeal,
                             ),
                           ),
                         ),
@@ -259,7 +318,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: AppTheme.getFuelColor(log.totalCalories / goal),
+                      color: fuelColor,
                     ),
                   ),
                 ],
@@ -268,8 +327,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
               LinearPercentIndicator(
                 lineHeight: 8,
                 percent: percent,
-                backgroundColor: AppTheme.surfaceLight,
-                progressColor: AppTheme.getFuelColor(log.totalCalories / goal),
+                backgroundColor: AppTheme.surfaceLight.withValues(alpha: 0.3),
+                progressColor: fuelColor,
                 barRadius: const Radius.circular(4),
                 padding: EdgeInsets.zero,
               ),
