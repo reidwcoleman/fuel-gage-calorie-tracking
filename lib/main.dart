@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'providers/calorie_provider.dart';
 import 'screens/main_shell.dart';
+import 'services/energy_service.dart';
+import 'services/groq_food_service.dart';
 import 'services/storage_service.dart';
 import 'theme/app_theme.dart';
 
@@ -18,22 +20,36 @@ void main() async {
     ),
   );
 
-  // Initialize storage
+  // Initialize services
   final storage = StorageService();
   await storage.init();
 
-  runApp(FuelGageApp(storage: storage));
+  final energyService = EnergyService();
+  await energyService.init();
+
+  // Load Groq API key if saved
+  final groqKey = storage.getGroqApiKey();
+  if (groqKey != null) {
+    GroqFoodService.setApiKey(groqKey);
+  }
+
+  runApp(FuelGageApp(storage: storage, energyService: energyService));
 }
 
 class FuelGageApp extends StatelessWidget {
   final StorageService storage;
+  final EnergyService energyService;
 
-  const FuelGageApp({super.key, required this.storage});
+  const FuelGageApp({
+    super.key,
+    required this.storage,
+    required this.energyService,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => CalorieProvider(storage)..init(),
+      create: (_) => CalorieProvider(storage, energyService)..init(),
       child: MaterialApp(
         title: 'Fuel Gage',
         debugShowCheckedModeBanner: false,
@@ -125,7 +141,7 @@ class _SplashScreenState extends State<SplashScreen>
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryGreen.withOpacity(0.15),
+                        color: AppTheme.primaryGreen.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(

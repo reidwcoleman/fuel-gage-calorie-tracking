@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../widgets/fuel_gauge.dart';
 import '../widgets/meal_section.dart';
 import 'add_food_screen.dart';
+import 'scan_food_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -27,16 +28,24 @@ class HomeScreen extends StatelessWidget {
           body: SafeArea(
             child: CustomScrollView(
               slivers: [
+                // Energy lost banner
+                if (provider.showEnergyLostBanner)
+                  SliverToBoxAdapter(
+                    child: _buildEnergyLostBanner(context, provider),
+                  ),
                 SliverToBoxAdapter(
                   child: _buildHeader(context, provider),
                 ),
                 SliverToBoxAdapter(
                   child: FuelGauge(
                     percent: provider.progressPercent,
-                    currentCalories: provider.totalCalories,
+                    currentCalories: provider.currentEnergy,
                     goalCalories: provider.calorieGoal,
                     statusText: provider.fuelStatus,
                   ),
+                ),
+                SliverToBoxAdapter(
+                  child: _buildEnergyInfo(provider),
                 ),
                 SliverToBoxAdapter(
                   child: _buildQuickStats(provider),
@@ -57,13 +66,77 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => _showMealTypeSelector(context),
-            icon: const Icon(Icons.add),
-            label: const Text('Add Food'),
+          floatingActionButton: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FloatingActionButton(
+                heroTag: 'scan',
+                onPressed: () => _showMealTypeSelectorForScan(context),
+                backgroundColor: AppTheme.accent,
+                child: const Icon(Icons.document_scanner),
+              ),
+              const SizedBox(width: 12),
+              FloatingActionButton.extended(
+                heroTag: 'add',
+                onPressed: () => _showMealTypeSelector(context),
+                icon: const Icon(Icons.add),
+                label: const Text('Add Food'),
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildEnergyLostBanner(BuildContext context, CalorieProvider provider) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.warningYellow.withValues(alpha: 0.2),
+            AppTheme.dangerRed.withValues(alpha: 0.15),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.warningYellow.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.warningYellow.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.trending_down, color: AppTheme.warningYellow),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Energy Burned While Away',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '-${provider.energyLostSinceLastLogin} cal since ${provider.lastActiveDescription}',
+                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: provider.dismissEnergyLostBanner,
+            icon: const Icon(Icons.close, size: 20),
+            color: AppTheme.textMuted,
+          ),
+        ],
+      ),
     );
   }
 
@@ -102,10 +175,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     child: const Text(
                       'Go to Today',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.accent,
-                      ),
+                      style: TextStyle(fontSize: 12, color: AppTheme.accent),
                     ),
                   ),
               ],
@@ -124,9 +194,64 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickStats(CalorieProvider provider) {
+  Widget _buildEnergyInfo(CalorieProvider provider) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppTheme.cardBackground,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildEnergyInfoItem(
+              Icons.local_fire_department,
+              'Burn Rate',
+              '${provider.hourlyBurnRate} cal/hr',
+              AppTheme.dangerRed,
+            ),
+            Container(width: 1, height: 40, color: AppTheme.surfaceLight),
+            _buildEnergyInfoItem(
+              Icons.restaurant,
+              'Eaten Today',
+              '${provider.totalCalories} cal',
+              AppTheme.primaryGreen,
+            ),
+            Container(width: 1, height: 40, color: AppTheme.surfaceLight),
+            _buildEnergyInfoItem(
+              Icons.battery_charging_full,
+              'Net Energy',
+              '${provider.currentEnergy} cal',
+              AppTheme.getFuelColor(provider.progressPercent),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEnergyInfoItem(IconData icon, String label, String value, Color color) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 13),
+        ),
+        Text(
+          label,
+          style: const TextStyle(color: AppTheme.textMuted, fontSize: 10),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickStats(CalorieProvider provider) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Expanded(
@@ -170,18 +295,11 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
-            ),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
           ),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppTheme.textMuted,
-            ),
+            style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
           ),
         ],
       ),
@@ -227,23 +345,13 @@ class HomeScreen extends StatelessWidget {
                 padding: EdgeInsets.all(16),
                 child: Text(
                   'Add food to...',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                 ),
               ),
               for (final mealType in MealType.values)
                 ListTile(
-                  leading: Text(
-                    mealType.icon,
-                    style: const TextStyle(fontSize: 24),
-                  ),
-                  title: Text(
-                    mealType.displayName,
-                    style: const TextStyle(color: AppTheme.textPrimary),
-                  ),
+                  leading: Text(mealType.icon, style: const TextStyle(fontSize: 24)),
+                  title: Text(mealType.displayName, style: const TextStyle(color: AppTheme.textPrimary)),
                   onTap: () {
                     Navigator.pop(context);
                     _navigateToAddFood(context, mealType);
@@ -257,12 +365,59 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  void _showMealTypeSelectorForScan(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.cardBackground,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(Icons.auto_awesome, color: AppTheme.accent),
+                    SizedBox(width: 8),
+                    Text(
+                      'AI Scan food to...',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                    ),
+                  ],
+                ),
+              ),
+              for (final mealType in MealType.values)
+                ListTile(
+                  leading: Text(mealType.icon, style: const TextStyle(fontSize: 24)),
+                  title: Text(mealType.displayName, style: const TextStyle(color: AppTheme.textPrimary)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _navigateToScanFood(context, mealType);
+                  },
+                ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _navigateToAddFood(BuildContext context, MealType mealType) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => AddFoodScreen(mealType: mealType),
-      ),
+      MaterialPageRoute(builder: (context) => AddFoodScreen(mealType: mealType)),
+    );
+  }
+
+  void _navigateToScanFood(BuildContext context, MealType mealType) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ScanFoodScreen(mealType: mealType)),
     );
   }
 }

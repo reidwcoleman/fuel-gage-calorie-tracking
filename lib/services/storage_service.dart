@@ -7,6 +7,7 @@ class StorageService {
   static const String _logsKey = 'daily_logs';
   static const String _goalKey = 'calorie_goal';
   static const String _customFoodsKey = 'custom_foods';
+  static const String _groqApiKeyKey = 'groq_api_key';
 
   late SharedPreferences _prefs;
 
@@ -91,5 +92,18 @@ class StorageService {
     final foods = getCustomFoods();
     foods.add(food);
     await _prefs.setString(_customFoodsKey, jsonEncode(foods));
+  }
+
+  // Groq API Key
+  String? getGroqApiKey() {
+    return _prefs.getString(_groqApiKeyKey);
+  }
+
+  Future<void> setGroqApiKey(String? key) async {
+    if (key == null || key.isEmpty) {
+      await _prefs.remove(_groqApiKeyKey);
+    } else {
+      await _prefs.setString(_groqApiKeyKey, key);
+    }
   }
 }

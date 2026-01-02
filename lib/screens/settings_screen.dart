@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/calorie_provider.dart';
+import '../services/groq_food_service.dart';
+import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -13,17 +15,35 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _goalController;
+  late TextEditingController _apiKeyController;
+  bool _obscureApiKey = true;
+  bool _apiKeySaved = false;
 
   @override
   void initState() {
     super.initState();
     final goal = context.read<CalorieProvider>().calorieGoal;
     _goalController = TextEditingController(text: goal.toString());
+    _apiKeyController = TextEditingController();
+    _loadApiKey();
+  }
+
+  Future<void> _loadApiKey() async {
+    final storage = StorageService();
+    await storage.init();
+    final key = storage.getGroqApiKey();
+    if (key != null && key.isNotEmpty) {
+      setState(() {
+        _apiKeyController.text = key;
+        _apiKeySaved = true;
+      });
+    }
   }
 
   @override
   void dispose() {
     _goalController.dispose();
+    _apiKeyController.dispose();
     super.dispose();
   }
 
@@ -46,6 +66,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'Quick Goal Presets',
             'Common calorie goals based on activity level',
             _buildPresets(),
+          ),
+          const SizedBox(height: 24),
+          _buildSection(
+            'AI Food Scanning',
+            'Enter your Groq API key to enable AI-powered food scanning',
+            _buildApiKeySection(),
           ),
           const SizedBox(height: 24),
           _buildSection(
@@ -195,6 +221,161 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildApiKeySection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accent.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.auto_awesome, color: AppTheme.accent, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Groq API Key',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        _apiKeySaved ? 'API key configured' : 'Not configured',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _apiKeySaved ? AppTheme.primaryGreen : AppTheme.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (_apiKeySaved)
+                  const Icon(Icons.check_circle, color: AppTheme.primaryGreen, size: 20),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _apiKeyController,
+              obscureText: _obscureApiKey,
+              decoration: InputDecoration(
+                labelText: 'API Key',
+                hintText: 'gsk_...',
+                border: const OutlineInputBorder(),
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(_obscureApiKey ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setState(() => _obscureApiKey = !_obscureApiKey),
+                    ),
+                    if (_apiKeyController.text.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _apiKeyController.clear();
+                          _saveApiKey(clear: true);
+                        },
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _saveApiKey(),
+                    icon: const Icon(Icons.save),
+                    label: const Text('Save API Key'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceLight,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: AppTheme.textMuted, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Get your free API key at console.groq.com',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textMuted,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _saveApiKey({bool clear = false}) async {
+    final storage = StorageService();
+    await storage.init();
+
+    if (clear) {
+      await storage.setGroqApiKey(null);
+      GroqFoodService.setApiKey('');
+      setState(() => _apiKeySaved = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('API key removed'),
+          backgroundColor: AppTheme.warningYellow,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+      return;
+    }
+
+    final key = _apiKeyController.text.trim();
+    if (key.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter an API key'),
+          backgroundColor: AppTheme.dangerRed,
+        ),
+      );
+      return;
+    }
+
+    await storage.setGroqApiKey(key);
+    GroqFoodService.setApiKey(key);
+    setState(() => _apiKeySaved = true);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('API key saved! AI food scanning is now enabled.'),
+        backgroundColor: AppTheme.primaryGreen,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
   Widget _buildAbout() {
     return Card(
       child: Padding(
@@ -207,7 +388,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryGreen.withOpacity(0.2),
+                    color: AppTheme.primaryGreen.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
