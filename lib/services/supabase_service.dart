@@ -16,6 +16,7 @@ class SupabaseService {
       anonKey: _supabaseAnonKey,
     );
     _client = Supabase.instance.client;
+    // No auth needed - using anon key with RLS disabled or public policies
   }
 
   static SupabaseClient get client {
@@ -145,10 +146,6 @@ class SupabaseService {
         id: e['id'] as String,
         foodName: e['food_name'] as String,
         calories: e['calories'] as int,
-        mealType: MealType.values.firstWhere(
-          (m) => m.name == e['meal_type'],
-          orElse: () => MealType.snack,
-        ),
         quantity: (e['quantity'] as num?)?.toDouble() ?? 1.0,
         unit: e['unit'] as String? ?? 'serving',
       )).toList();
@@ -172,7 +169,6 @@ class SupabaseService {
             'date': dateKey,
             'food_name': entry.foodName,
             'calories': entry.calories,
-            'meal_type': entry.mealType.name,
             'quantity': entry.quantity,
             'unit': entry.unit,
           })
@@ -183,7 +179,6 @@ class SupabaseService {
         id: response['id'] as String,
         foodName: response['food_name'] as String,
         calories: response['calories'] as int,
-        mealType: entry.mealType,
         quantity: (response['quantity'] as num?)?.toDouble() ?? 1.0,
         unit: response['unit'] as String? ?? 'serving',
       );
@@ -226,10 +221,6 @@ class SupabaseService {
           id: e['id'] as String,
           foodName: e['food_name'] as String,
           calories: e['calories'] as int,
-          mealType: MealType.values.firstWhere(
-            (m) => m.name == e['meal_type'],
-            orElse: () => MealType.snack,
-          ),
           quantity: (e['quantity'] as num?)?.toDouble() ?? 1.0,
           unit: e['unit'] as String? ?? 'serving',
         );

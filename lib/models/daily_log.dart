@@ -11,16 +11,6 @@ class DailyLog {
 
   int get totalCalories => entries.fold(0, (sum, entry) => sum + entry.calories);
 
-  int caloriesForMeal(MealType mealType) {
-    return entries
-        .where((e) => e.mealType == mealType)
-        .fold(0, (sum, entry) => sum + entry.calories);
-  }
-
-  List<FoodEntry> entriesForMeal(MealType mealType) {
-    return entries.where((e) => e.mealType == mealType).toList();
-  }
-
   String get dateKey =>
       '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 

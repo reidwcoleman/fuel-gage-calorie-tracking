@@ -113,7 +113,7 @@ class CalorieProvider extends ChangeNotifier {
     // Find the entry to get its calories before removing
     final entry = currentLog.entries.firstWhere(
       (e) => e.id == entryId,
-      orElse: () => FoodEntry(foodName: '', calories: 0, mealType: MealType.snack),
+      orElse: () => FoodEntry(foodName: '', calories: 0),
     );
 
     final success = await SupabaseService.removeFoodEntry(entryId);

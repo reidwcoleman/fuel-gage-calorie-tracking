@@ -8,9 +8,7 @@ import '../services/groq_food_service.dart';
 import '../theme/app_theme.dart';
 
 class ScanFoodScreen extends StatefulWidget {
-  final MealType mealType;
-
-  const ScanFoodScreen({super.key, required this.mealType});
+  const ScanFoodScreen({super.key});
 
   @override
   State<ScanFoodScreen> createState() => _ScanFoodScreenState();
@@ -33,7 +31,7 @@ class _ScanFoodScreenState extends State<ScanFoodScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Scan Food - ${widget.mealType.displayName}'),
+        title: const Text('AI Food Scan'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -413,7 +411,6 @@ class _ScanFoodScreenState extends State<ScanFoodScreen> {
     final entry = FoodEntry(
       foodName: food.name,
       calories: food.estimatedCalories,
-      mealType: widget.mealType,
       quantity: 1,
       unit: food.servingSize ?? 'serving',
     );

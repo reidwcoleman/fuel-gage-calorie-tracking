@@ -224,57 +224,61 @@ class SkeletonHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 24),
-          // Header skeleton
-          Shimmer.fromColors(
-            baseColor: AppTheme.cardBackground,
-            highlightColor: AppTheme.surfaceLight,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 24),
+            // Header skeleton
+            Shimmer.fromColors(
+              baseColor: AppTheme.cardBackground,
+              highlightColor: AppTheme.surfaceLight,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 100,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceLight,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 140,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceLight,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+            // Energy card skeleton
+            const SkeletonEnergyCard(),
+            const SizedBox(height: 20),
+            // Stats row skeleton
+            const Row(
               children: [
-                Container(
-                  width: 100,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceLight,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  width: 140,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceLight,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
+                Expanded(child: SkeletonStatCard()),
+                SizedBox(width: 12),
+                Expanded(child: SkeletonStatCard()),
+                SizedBox(width: 12),
+                Expanded(child: SkeletonStatCard()),
               ],
             ),
-          ),
-          const SizedBox(height: 32),
-          // Energy card skeleton
-          const SkeletonEnergyCard(),
-          const SizedBox(height: 20),
-          // Stats row skeleton
-          const Row(
-            children: [
-              Expanded(child: SkeletonStatCard()),
-              SizedBox(width: 12),
-              Expanded(child: SkeletonStatCard()),
-              SizedBox(width: 12),
-              Expanded(child: SkeletonStatCard()),
-            ],
-          ),
-          const SizedBox(height: 28),
-          // Food section skeleton
-          const SkeletonFoodList(itemCount: 3),
-        ],
+            const SizedBox(height: 28),
+            // Food section skeleton
+            const SkeletonFoodList(itemCount: 2),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }

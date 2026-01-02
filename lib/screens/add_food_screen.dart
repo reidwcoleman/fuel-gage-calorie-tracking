@@ -8,11 +8,10 @@ import '../models/food_item.dart';
 import '../providers/calorie_provider.dart';
 import '../services/usda_food_service.dart';
 import '../theme/app_theme.dart';
+// MealType removed - foods are now logged throughout the day without categories
 
 class AddFoodScreen extends StatefulWidget {
-  final MealType mealType;
-
-  const AddFoodScreen({super.key, required this.mealType});
+  const AddFoodScreen({super.key});
 
   @override
   State<AddFoodScreen> createState() => _AddFoodScreenState();
@@ -80,7 +79,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add to ${widget.mealType.displayName}'),
+        title: const Text('Add Food'),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppTheme.primaryTeal,
@@ -516,7 +515,6 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
                     final entry = FoodEntry(
                       foodName: food.displayName,
                       calories: totalCalories,
-                      mealType: widget.mealType,
                       quantity: grams,
                       unit: 'g',
                     );
@@ -560,7 +558,6 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
     final entry = FoodEntry(
       foodName: food.name,
       calories: calories,
-      mealType: widget.mealType,
       quantity: quantity,
       unit: food.servingSize != null ? 'serving' : '100g',
     );
@@ -570,7 +567,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${food.name} added to ${widget.mealType.displayName}'),
+        content: Text('${food.name} added'),
         backgroundColor: AppTheme.primaryTeal,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -607,7 +604,6 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
     final entry = FoodEntry(
       foodName: name,
       calories: calories,
-      mealType: widget.mealType,
       quantity: 1,
       unit: 'serving',
     );
@@ -617,7 +613,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$name added to ${widget.mealType.displayName}'),
+        content: Text('$name added'),
         backgroundColor: AppTheme.primaryTeal,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
